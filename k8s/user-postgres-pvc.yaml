@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  # Bu disk talebinin ismi
+  name: user-postgres-pvc
+spec:
+  # ReadWriteOnce -> bu disk aynı anda sadece TEK bir pod tarafından yazılabilir
+  # (PostgreSQL için bu doğru seçim, çünkü tek bir PostgreSQL pod'u çalışacak)
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # Ne kadar disk alanı istiyoruz - öğrenme projesi için 1GB fazlasıyla yeterli
+      storage: 1Gi

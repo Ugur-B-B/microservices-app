@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-postgres
+  template:
+    metadata:
+      labels:
+        app: user-postgres
+    spec:
+      containers:
+        - name: user-postgres
+          # Resmi PostgreSQL image'ı - bunu internetten indirecek (bizim kendi image'ımız değil)
+          image: postgres:16
+          ports:
+            - containerPort: 5432
+          # env - container'a ortam değişkenleri veriyoruz
+          # ama şifreyi doğrudan yazmak yerine, daha önce oluşturduğumuz
+          # Secret'tan çekiyoruz
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: user-postgres-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: user-postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: user-postgres-secret
+                  key: POSTGRES_DB
+          # volumeMounts - PVC'yi (kalıcı diski) container'ın içindeki
+          # PostgreSQL'in veri klasörüne bağlıyoruz
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+      # volumes - yukarıda kullandığımız "postgres-storage" isminin
+      # aslında hangi PVC'ye karşılık geldiğini burada tanımlıyoruz
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: user-postgres-pvc

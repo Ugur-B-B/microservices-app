@@ -1,0 +1,55 @@
+# Bu bir Deployment kaynağı - container'ı çalışır halde tutan Kubernetes nesnesi
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-postgres
+spec:
+  # Kaç kopya çalışacak - PostgreSQL için 1 yeterli
+  replicas: 1
+  # selector - bu Deployment'ın hangi Pod'ları yöneteceğini belirtir
+  selector:
+    matchLabels:
+      app: product-postgres
+  template:
+    metadata:
+      # Pod'a etiket veriyoruz, selector'daki ile eşleşmeli
+      labels:
+        app: product-postgres
+    spec:
+      containers:
+        - name: product-postgres
+          # Kendi yazdığımız bir image değil - resmi PostgreSQL image'ı,
+          # internetten (Docker Hub'dan) otomatik indirilecek
+          image: postgres:16
+          ports:
+            - containerPort: 5432
+          # env - container'a ortam değişkenleri (kullanıcı adı, şifre, db ismi) veriyoruz
+          # Bunları doğrudan yazmak yerine, bir önceki adımda oluşturduğumuz
+          # Secret'tan çekiyoruz - böylece şifre YAML dosyasında açık görünmüyor
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: product-postgres-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: product-postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: product-postgres-secret
+                  key: POSTGRES_DB
+          # volumeMounts - biraz önce oluşturduğumuz PVC'yi (kalıcı diski),
+          # container'ın içindeki PostgreSQL'in veri klasörüne bağlıyoruz
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+      # volumes - yukarıda "postgres-storage" diye kullandığımız ismin
+      # aslında hangi PVC'ye karşılık geldiğini burada tanımlıyoruz
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: product-postgres-pvc

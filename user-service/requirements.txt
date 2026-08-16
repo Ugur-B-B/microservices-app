@@ -1,0 +1,7 @@
+# fastapi - API framework'ümüz
+fastapi==0.115.0
+# uvicorn - FastAPI'yi çalıştıran sunucu (ASGI server)
+uvicorn[standard]==0.30.6
+sqlalchemy==2.0.35
+#Python ile PostgreSQL veritabanı arasındaki gerçek bağlantıyı kuran sürücü (driver).
+psycopg[binary]

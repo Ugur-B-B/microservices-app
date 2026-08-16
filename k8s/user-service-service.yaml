@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  # Bu Service'in ismi - diğer servisler bu isimle ona ulaşabilecek
+  name: user-service
+spec:
+  # Hangi Pod'lara trafiği yönlendireceğini, Deployment'taki label ile eşleştirerek buluyor
+  selector:
+    app: user-service
+  ports:
+    # port: Service'in dışa açtığı port
+    # targetPort: container'ın içindeki gerçek port (main.py'nin dinlediği)
+    - port: 8000
+      targetPort: 8000
+  # type: ClusterIP -> sadece cluster içinden erişilebilir (varsayılan tip)
+  # product-service, user-service'e bu sayede "user-service:8000" diyerek ulaşabilecek
+  type: ClusterIP

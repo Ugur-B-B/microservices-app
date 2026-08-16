@@ -1,0 +1,15 @@
+# apiVersion ve kind: bu bir "kalıcı disk talebi" kaynağı
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  # Bu disk talebinin ismi
+  name: product-postgres-pvc
+spec:
+  # ReadWriteOnce -> bu disk aynı anda sadece TEK bir pod tarafından
+  # okunup yazılabilir (PostgreSQL için doğru seçim)
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # 1Gi -> 1 Gibibyte disk alanı istiyoruz (öğrenme projesi için yeterli)
+      storage: 1Gi

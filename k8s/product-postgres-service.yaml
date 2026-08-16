@@ -1,0 +1,21 @@
+# Bu bir Service kaynağı - Pod'lara sabit bir "ağ adresi/isim" veren Kubernetes nesnesi
+apiVersion: v1
+kind: Service
+metadata:
+  # ÇOK ÖNEMLİ: bu isim, product-service'in PostgreSQL'e ulaşırken
+  # kullanacağı adres olacak. "localhost" değil, "product-postgres" diyecek
+  name: product-postgres
+spec:
+  # selector - bu Service'in trafiği hangi Pod'lara yönlendireceğini,
+  # Deployment'taki "app: product-postgres" etiketiyle eşleştirerek buluyor
+  selector:
+    app: product-postgres
+  ports:
+    # port: Service'in dışa açtığı port (diğer servislerin bağlanacağı)
+    # targetPort: container'ın içindeki gerçek PostgreSQL portu
+    - port: 5432
+      targetPort: 5432
+  # type: ClusterIP -> sadece Kubernetes cluster'ının İÇİNDEN erişilebilir
+  # (dışarıdan, senin tarayıcından erişilemez - buna gerek de yok,
+  # sadece product-service bu adrese ulaşacak)
+  type: ClusterIP

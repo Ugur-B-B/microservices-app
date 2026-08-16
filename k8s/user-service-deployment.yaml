@@ -1,0 +1,31 @@
+# apiVersion ve kind - Kubernetes'e "bu dosya ne tür bir kaynak tanımlıyor" söylüyoruz
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # Bu Deployment'ın ismi
+  name: user-service
+spec:
+  # Kaç kopya (replica) çalıştırılacak - şimdilik 1 tane yeterli
+  replicas: 1
+  # selector - bu Deployment'ın hangi Pod'ları "kendi Pod'um" olarak tanıyacağını belirtir
+  selector:
+    matchLabels:
+      app: user-service
+  # template - oluşturulacak Pod'un şablonu
+  template:
+    metadata:
+      # Pod'a etiket (label) veriyoruz - selector'daki ile eşleşmeli
+      labels:
+        app: user-service
+    spec:
+      containers:
+        # Container'a isim veriyoruz
+        - name: user-service
+          # Hangi image'ı kullanacak - minikube içine yüklediğimiz image
+          image: user-service:latest
+          # imagePullPolicy: Never -> "internetten indirme, zaten yerelde (minikube'de) var"
+          # Bu çok önemli, yoksa Kubernetes internetten indirmeye çalışır ve bulamaz
+          imagePullPolicy: Never
+          # Container'ın hangi portu dinlediği (main.py'de 8000 kullanıyoruz)
+          ports:
+            - containerPort: 8000
