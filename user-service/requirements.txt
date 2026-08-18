@@ -5,3 +5,8 @@ uvicorn[standard]==0.30.6
 sqlalchemy==2.0.35
 #Python ile PostgreSQL veritabanı arasındaki gerçek bağlantıyı kuran sürücü (driver).
 psycopg[binary]
+# pytest - testleri yazmamızı ve otomatik çalıştırmamızı sağlayan test framework'ü
+pytest==8.3.3
+# httpx - testlerin içinde API'ye sahte istek (GET/POST) göndermemizi sağlayan araç
+# FastAPI'nin TestClient'ı arka planda bunu kullanıyor
+httpx==0.27.2

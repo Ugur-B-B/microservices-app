@@ -19,13 +19,14 @@ spec:
         app: user-service
     spec:
       containers:
-        # Container'a isim veriyoruz
         - name: user-service
-          # Hangi image'ı kullanacak - minikube içine yüklediğimiz image
           image: user-service:latest
-          # imagePullPolicy: Never -> "internetten indirme, zaten yerelde (minikube'de) var"
-          # Bu çok önemli, yoksa Kubernetes internetten indirmeye çalışır ve bulamaz
           imagePullPolicy: Never
-          # Container'ın hangi portu dinlediği (main.py'de 8000 kullanıyoruz)
           ports:
             - containerPort: 8000
+          # env - container'a "DATABASE_URL" ortam değişkenini veriyoruz
+          # database.py artık bunu okuyup Kubernetes içindeki
+          # gerçek PostgreSQL adresine bağlanacak
+          env:
+            - name: DATABASE_URL
+              value: "postgresql+psycopg://berk:berk123@user-postgres:5432/userdb"
