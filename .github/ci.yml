@@ -1,0 +1,107 @@
+# Bu workflow'un GitHub Actions arayüzünde görünecek ismi
+name: CI
+
+# on: bu workflow'un NE ZAMAN tetikleneceğini belirtir
+on:
+  # main branch'e her push yapıldığında çalışsın
+  push:
+    branches: [main]
+  # main branch'e her pull request açıldığında da çalışsın
+  pull_request:
+    branches: [main]
+
+# jobs: workflow içinde çalışacak işlerin listesi
+jobs:
+  # İlk iş: user-service'in testlerini çalıştırmak
+  test-user-service:
+    # Bu işin hangi işletim sisteminde çalışacağı - GitHub'ın sağladığı
+    # geçici bir Ubuntu sanal makinesi
+    runs-on: ubuntu-latest
+
+    # services: bu iş çalışırken, yanında ek olarak başlatılacak container'lar
+    # Testlerimiz PostgreSQL'e ihtiyaç duyduğu için, burada GEÇİCİ bir
+    # PostgreSQL container'ı başlatıyoruz (gerçek projedeki gibi kalıcı değil,
+    # sadece bu test çalışırken var olacak)
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: berk
+          POSTGRES_PASSWORD: berk123
+          POSTGRES_DB: userdb
+        # ports: container'ın 5432 portunu, GitHub Actions makinesinin
+        # 5432 portuna bağlıyoruz
+        ports:
+          - 5432:5432
+        # options: PostgreSQL'in gerçekten hazır olup olmadığını kontrol eden
+        # bir "sağlık kontrolü" (health check) - hazır olmadan testler başlamasın diye
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    # steps: bu iş içinde sırayla çalışacak adımlar
+    steps:
+      # 1. Adım: repo'nun kodunu GitHub Actions makinesine indir (checkout)
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Adım: Python'ı kur
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # 3. Adım: user-service klasöründeki bağımlılıkları kur
+      - name: Install dependencies
+        working-directory: ./user-service
+        run: pip install -r requirements.txt
+
+      # 4. Adım: testleri çalıştır
+      # DATABASE_URL'i burada environment variable olarak veriyoruz -
+      # database.py'deki os.getenv() bu değeri okuyup kullanacak
+      - name: Run tests
+        working-directory: ./user-service
+        env:
+          DATABASE_URL: "postgresql+psycopg://berk:berk123@localhost:5432/userdb"
+        run: pytest
+  # İkinci iş: product-service'in testlerini çalıştırmak
+  # user-service'ten TAMAMEN BAĞIMSIZ çalışır - GitHub Actions
+  # bu iki işi paralel (aynı anda) çalıştırabilir
+  test-product-service:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: berk
+          POSTGRES_PASSWORD: berk123
+          POSTGRES_DB: productdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        working-directory: ./product-service
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        working-directory: ./product-service
+        env:
+          DATABASE_URL: "postgresql+psycopg://berk:berk123@localhost:5432/productdb"
+        run: pytest
