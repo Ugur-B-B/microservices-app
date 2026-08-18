@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-user-service:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: berk
+          POSTGRES_PASSWORD: berk123
+          POSTGRES_DB: userdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        working-directory: ./user-service
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        working-directory: ./user-service
+        env:
+          DATABASE_URL: "postgresql+psycopg://berk:berk123@localhost:5432/userdb"
+        run: pytest
+
+  test-product-service:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: berk
+          POSTGRES_PASSWORD: berk123
+          POSTGRES_DB: productdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        working-directory: ./product-service
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        working-directory: ./product-service
+        env:
+          DATABASE_URL: "postgresql+psycopg://berk:berk123@localhost:5432/productdb"
+        run: pytest
